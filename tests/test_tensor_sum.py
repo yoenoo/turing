@@ -1,5 +1,5 @@
 import unittest
-from picasso.tensor import Tensor
+from turing.tensor import Tensor
 
 class TestTensorSum(unittest.TestCase):
 	def test_simple_sum(self):
