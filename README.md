@@ -5,7 +5,6 @@ The Tensor class is a wrapper around a NumPy array, expect it does Tensor things
 
 ### Example
 ```python
-from turing.tensor import Tensor
 import tinygrad.nn as nn
 from turing.optim import SGD
 
