@@ -1,6 +1,11 @@
 import numpy as np 
 from turing.tensor import Tensor
 
+def linear(input, weight, bias=None):
+  out = input.matmul(weight)
+  if bias: out += bias
+  return out
+
 def one_hot(tensor, num_classes=-1):
   if tensor.ndim != 1:
     raise RuntimeError(f"does not support {tensor.ndim}-dim tensor")
