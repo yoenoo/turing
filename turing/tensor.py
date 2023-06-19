@@ -4,9 +4,6 @@ from functools import partialmethod
 
 DEBUG = False
 
-#from enum import Enum, auto
-#class DataType(Enum): f16 = auto(); f32 = auto(); f64 = auto()
-
 class Tensor:
   def __init__(self, data, requires_grad=False, dtype=np.float32):
     if dtype == np.float64:
@@ -26,7 +23,8 @@ class Tensor:
 
   def __repr__(self):
     #tensor(2.3029, grad_fn=<NegBackward0>)
-    return f"<Tensor{self.shape} [requires_grad]>" if self.requires_grad else f"<Tensor{self.shape}>"
+    #return f"<Tensor{self.shape} [requires_grad]>" if self.requires_grad else f"<Tensor{self.shape}>"
+    return f"Tensor({self.data}, grad_fn=<{self._ctx}>)" if self.requires_grad else f"Tensor({self.data})"
 
   def __iter__(self):
     yield self
@@ -40,18 +38,23 @@ class Tensor:
     return out
 
   def __add__(self, x):
-    assert isinstance(x, int) or isinstance(x, float)
-    return self.add(Tensor(x))
+    if isinstance(x, int) or isinstance(x, float):
+      return self.add(Tensor([x]))
+    if isinstance(x, Tensor):
+      return self.add(x)
+    else:
+      raise RuntimeError(f"cannot add type {type(x)}")
 
   def __sub__(self, x):
-    assert isinstance(x, int) or isinstance(x, float)
-    return self.add(Tensor(-x))
+    if isinstance(x, int) or isinstance(x, float):
+      return self.add(Tensor(-x))
+    elif isinstance(x, Tensor):
+      return self.add(-x)
+    else:
+      raise RuntimeError(f"cannot sub data type {type(x)}")
 
   def __neg__(self):
     return self.mul(Tensor([-1]))
-    #out = self
-    #out.data *= -1
-    #return out
 
   def __mul__(self, x):
     assert isinstance(x, int) or isinstance(x, float)
@@ -93,8 +96,8 @@ class Tensor:
     return Tensor(np.ones(shape, dtype=dtype))
 
   @staticmethod
-  def rand(*shape, dtype=np.float32):
-    return Tensor(np.random.uniform(0,1,shape).astype(dtype))
+  def rand(size, low=0, high=1, dtype=np.float32):
+    return Tensor(np.random.uniform(low,high,size).astype(dtype))
 
   @staticmethod
   def randn(*shape, dtype=np.float32):
@@ -124,35 +127,13 @@ class Tensor:
       assert t0.grad is not None
       grads = t0._ctx.backward(t0.grad.data)
       if DEBUG: print("t0.parents:", t0._ctx.parents)
-      # grads = [Tensor(g, requires_grad=False) for g in ([grads] if len(t0._ctx.parents) == 1 else grads)] # grads don't need grads
       if DEBUG: print("grads:", grads)
       if DEBUG: print([g.data for g in grads])
       if any(not isinstance(g, Tensor) for g in grads): raise RuntimeError("invalid tensor type")
       for t, g in zip(t0._ctx.parents, grads):
-        #print("ops_:", t._ctx)
-        #print(t.data, g.data)
         if g is not None and t.requires_grad:
           assert g.shape == t.shape, f"grad shape must match tensor shape, {g.shape!r} != {t.shape!r}"
           t.grad = g if t.grad is None else (t.grad + g)
-
-  """
-  def __sub__(self, x):
-    out = self
-    out.data -= x
-    return out 
-
-  def __truediv__(self, x):
-    out = self  
-    out.data /= x
-    return out
-
-  def __mul__(self, x):
-    # do we really want this?
-    #return self.mul(Tensor([x]))
-    out = self
-    out.data *= x
-    return out
-  """
 
 class Function:
   def __init__(self, *tensors):
@@ -222,13 +203,11 @@ class LogSoftmax(Function):
       return c + np.log(np.exp((x-c)).sum(axis=1, keepdims=True))
 
     x -= _logsumexp(x)
-    #x = x - np.log(np.exp(x).sum())
     self.x = x
     return x
 
   def backward(self, grad_output):
     return Tensor(grad_output - np.exp(self.x) * grad_output.sum(axis=1, keepdims=True))
-    return Tensor(grad_output - (np.exp(self.x) * grad_output).sum(axis=1, keepdims=True))
 
 class Mul(Function):
   def __repr__(self): return "mul"
@@ -248,7 +227,33 @@ class Add(Function):
     return x + y
 
   def backward(self, grad_output):
-    return Tensor(grad_output), Tensor(grad_output)
+    #if self.x.ndim == 0:
+    #  return Tensor(grad_output.sum()), Tensor(grad_output)
+    #elif self.y.ndim == 0:
+    #  return Tensor(grad_output), Tensor(grad_output.sum())
+    #if self.x.ndim == 0:
+    #  self.x = np.array([self.x])
+    #if self.y.ndim == 0:
+    #  self.y = np.array([self.y])
+
+    if self.x.shape[0] == 1:
+      return Tensor(grad_output.sum(axis=0, keepdims=True)), Tensor(grad_output)
+    elif self.y.shape[0] == 1:
+      return Tensor(grad_output), Tensor(grad_output.sum(axis=0, keepdims=True))
+    elif self.x.ndim == self.y.ndim:
+      return Tensor(grad_output), Tensor(grad_output)
+    else:
+      raise RuntimeError(f"unknown ndim for x (ndim={self.x.ndim}) and y (ndim={self.y.ndim})")
+
+class Square(Function):
+  def __repr__(self): return "square"
+
+  def forward(self, x):
+    self.x = x
+    return x ** 2
+
+  def backward(self, grad_output):
+    return Tensor(grad_output * 2 * self.x)
 
 register("matmul", Matmul)
 register("add", Add)
@@ -257,21 +262,4 @@ register("sum", Sum)
 register("mean", Mean)
 register("relu", ReLU)
 register("logsoftmax", LogSoftmax)
-
-if __name__ == "__main__":
-  x = Tensor.randn(32,28*28)
-  w1 = Tensor.randn(28*28,128).requires_grad_()
-  w2 = Tensor.randn(128,10).requires_grad_()
-  print(x)
-  print(w1)
-  print(w2)
-
-  out = x.matmul(w1).relu().matmul(w2).logsoftmax()
-  print(out.data)
-  out.backward()
-
-  print(w1.grad)
-  print(w2.grad)
-
-  #out = x.matmul(y)
-  #print(out)
+register("square", Square)
