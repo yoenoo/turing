@@ -26,6 +26,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./requirements.txt
       - name: Run unit tests for ops
-        run: python tests/test_ops.py
+        run: |
+          pip install -e .
+          python tests/test_ops.py
       - name: Test with pytest
-        run: pytest
+        run: |
+          pip install -e .
+          pytest
