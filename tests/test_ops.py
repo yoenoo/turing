@@ -54,3 +54,7 @@ class TestTensorOps(unittest.TestCase):
   def test_sum(self):
     vals = [np.random.randn(4,32)] 
     helper_test_op(vals, torch.sum, Tensor.sum, forward_only=True)
+
+
+if __name__ == "__main__":
+  unittest.main()
