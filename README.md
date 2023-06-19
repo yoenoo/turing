@@ -1,4 +1,4 @@
-![Unit Tests](https://github.com/github/turing/actions/workflows/turing_test.yaml/badge.svg)
+![Unit Tests](https://github.com/yoenoo/turing/actions/workflows/turing_test.yaml/badge.svg)
 
 # Turing Project
 A lightweight tensor / autograd library entirely built on top of NumPy, with PyTorch-like syntax.
