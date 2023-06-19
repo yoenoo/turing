@@ -1,0 +1,16 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Dependencies
+        run: 
+      - name: Run Pytest
+        run: pytest
+
