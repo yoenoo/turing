@@ -7,7 +7,7 @@ The Tensor class is a wrapper around a NumPy array, expect it does Tensor things
 
 ### Example
 ```python
-import tinygrad.nn as nn
+import turing.nn as nn
 from turing.optim import SGD
 
 class TinyNet(nn.Module):
