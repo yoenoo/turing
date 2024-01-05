@@ -44,6 +44,8 @@ optimizer.step()
 - [ ] Implement RNN/LSTM
 - [ ] Implement transformer
 - [ ] Add cuda / mps support
+- [ ] Add onnx support
+- [ ] Add lazy eval
 
 ## Installation
 The current recommended way to install turing is from source.
