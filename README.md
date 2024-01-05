@@ -23,7 +23,7 @@ class TinyNet(nn.Module):
     return out
 
 model = TinyNet()
-optimizer = optim.SGD(model.parameters(), lr=0.001)
+optimizer = SGD(model.parameters(), lr=0.001)
 cross_entropy_loss = nn.CrossEntropyLoss()
 
 # ... complete data loader
