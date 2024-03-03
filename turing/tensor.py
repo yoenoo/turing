@@ -60,6 +60,12 @@ class Tensor:
     assert isinstance(x, int) or isinstance(x, float)
     return self.mul(Tensor([x]))
 
+  def __rmul__(self, x):
+    if isinstance(x, Tensor):
+      raise NotImplementedError(f"unsuppored data type: {type(x)}")
+
+    return Tensor([x]).mul(self)
+
   def __truediv__(self, x):
     assert isinstance(x, int) or isinstance(x, float)
     return self.mul(Tensor([1/x]))  
@@ -88,8 +94,8 @@ class Tensor:
     return out
 
   @staticmethod
-  def zeros(*shape, dtype=np.float32):
-    return Tensor(np.zeros(shape, dtype=dtype))
+  def zeros(*shape, dtype=np.float32, **kwargs):
+    return Tensor(np.zeros(shape, dtype=dtype), **kwargs)
 
   @staticmethod
   def ones(*shape, dtype=np.float32):
