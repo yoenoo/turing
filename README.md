@@ -34,19 +34,6 @@ loss.backward()
 optimizer.step()
 ```
 
-### TODO
-- [ ] Add tests for more ops
-- [ ] Add CIFAR-10 example
-- [ ] Add DAG computation graph 
-- [ ] Implement nn.Sequential
-- [ ] Implement other optimizers e.g. Momentum, RMSProp, Adam
-- [ ] Implement CNN using [im2col](https://github.com/3outeille/CNNumpy/blob/5394f13e7ed67a808a3e39fd381f168825d65ff5/src/fast/utils.py#L360)
-- [ ] Implement RNN/LSTM
-- [ ] Implement transformer
-- [ ] Add cuda / mps support
-- [ ] Add onnx support
-- [ ] Add lazy eval
-
 ## Installation
 The current recommended way to install turing is from source.
 
