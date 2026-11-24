@@ -208,7 +208,7 @@ class LogSoftmax(Function):
       c = x.max(axis=1, keepdims=True)
       return c + np.log(np.exp((x-c)).sum(axis=1, keepdims=True))
 
-    x -= _logsumexp(x)
+    x = x - _logsumexp(x)
     self.x = x
     return x
 
